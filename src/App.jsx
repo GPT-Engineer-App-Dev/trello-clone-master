@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { LayoutDashboard, Settings, Templates } from "lucide-react";
+import { LayoutDashboard, Settings, Layout } from "lucide-react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Layout from "./layouts/sidebar";
 import Boards from "./pages/Boards";
@@ -18,7 +18,7 @@ export const navItems = [
   {
     title: "Templates",
     to: "/templates",
-    icon: <Templates className="h-4 w-4" />,
+    icon: <Layout className="h-4 w-4" />,
   },
   {
     title: "Settings",
