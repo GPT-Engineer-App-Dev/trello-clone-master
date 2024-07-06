@@ -6,6 +6,8 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Layout from "./layouts/sidebar";
 import Boards from "./pages/Boards";
 import BoardView from "./pages/BoardView";
+import SettingsPage from "./pages/Settings";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
@@ -30,19 +32,21 @@ export const navItems = [
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Boards />} />
-              <Route path="board/:id" element={<BoardView />} />
-              <Route path="templates" element={<div>Templates Page</div>} />
-              <Route path="settings" element={<div>Settings Page</div>} />
-            </Route>
-          </Routes>
-        </Router>
-      </TooltipProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <Toaster />
+          <Router>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Boards />} />
+                <Route path="board/:id" element={<BoardView />} />
+                <Route path="templates" element={<div>Templates Page</div>} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
+            </Routes>
+          </Router>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
