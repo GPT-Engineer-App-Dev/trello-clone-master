@@ -103,11 +103,11 @@ const BoardView = () => {
         </div>
       </div>
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4 pb-4">
+        <div className="flex gap-4 pb-4 overflow-x-auto">
           {lists.map((list) => (
             <List key={list.id} list={list} updateCard={updateCard} />
           ))}
-          <Button onClick={addNewList} variant="outline" className="h-auto py-8 px-4">
+          <Button onClick={addNewList} variant="outline" className="h-auto py-8 px-4 shrink-0">
             <Plus className="mr-2 h-4 w-4" /> Add New List
           </Button>
         </div>
