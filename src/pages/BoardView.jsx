@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, Settings, Trash } from "lucide-react";
+import { Plus, Settings, Trash, Edit2, Check } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { Textarea } from "@/components/ui/textarea";
 
 const mockLists = [
   {
@@ -75,6 +76,19 @@ const BoardView = () => {
     setLists(newLists);
   };
 
+  const updateCard = (listId, cardId, updatedCard) => {
+    const newLists = lists.map(list => {
+      if (list.id === listId) {
+        const updatedCards = list.cards.map(card => 
+          card.id === cardId ? { ...card, ...updatedCard } : card
+        );
+        return { ...list, cards: updatedCards };
+      }
+      return list;
+    });
+    setLists(newLists);
+  };
+
   return (
     <div className="h-full overflow-x-auto">
       <div className="flex justify-between items-center mb-6">
@@ -91,7 +105,7 @@ const BoardView = () => {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="flex gap-4 pb-4">
           {lists.map((list) => (
-            <List key={list.id} list={list} />
+            <List key={list.id} list={list} updateCard={updateCard} />
           ))}
           <Button onClick={addNewList} variant="outline" className="h-auto py-8 px-4">
             <Plus className="mr-2 h-4 w-4" /> Add New List
@@ -102,7 +116,7 @@ const BoardView = () => {
   );
 };
 
-const List = ({ list }) => {
+const List = ({ list, updateCard }) => {
   const [newCardTitle, setNewCardTitle] = useState("");
 
   const addNewCard = () => {
@@ -137,10 +151,7 @@ const List = ({ list }) => {
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                     >
-                      <Card className="p-2 mb-2">
-                        <h3 className="font-semibold">{card.title}</h3>
-                        <p className="text-sm text-muted-foreground">{card.description}</p>
-                      </Card>
+                      <EditableCard card={card} listId={list.id} updateCard={updateCard} />
                     </div>
                   )}
                 </Draggable>
@@ -160,6 +171,52 @@ const List = ({ list }) => {
           </Button>
         </div>
       </CardContent>
+    </Card>
+  );
+};
+
+const EditableCard = ({ card, listId, updateCard }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(card.title);
+  const [editedDescription, setEditedDescription] = useState(card.description);
+
+  const handleSave = () => {
+    updateCard(listId, card.id, { title: editedTitle, description: editedDescription });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <Card className="p-2 mb-2">
+        <Input
+          value={editedTitle}
+          onChange={(e) => setEditedTitle(e.target.value)}
+          className="mb-2"
+        />
+        <Textarea
+          value={editedDescription}
+          onChange={(e) => setEditedDescription(e.target.value)}
+          className="mb-2"
+        />
+        <Button onClick={handleSave} size="sm">
+          <Check className="mr-2 h-4 w-4" /> Save
+        </Button>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-2 mb-2 relative group">
+      <h3 className="font-semibold">{card.title}</h3>
+      <p className="text-sm text-muted-foreground">{card.description}</p>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={() => setIsEditing(true)}
+      >
+        <Edit2 className="h-4 w-4" />
+      </Button>
     </Card>
   );
 };
