@@ -4,28 +4,29 @@ import { Input } from "@/components/ui/input";
 import { Plus, Settings, Trash } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const mockLists = [
   {
-    id: 1,
+    id: "list-1",
     title: "To Do",
     cards: [
-      { id: 1, title: "Research competitors", description: "Analyze top 5 competitors" },
-      { id: 2, title: "Design mockups", description: "Create initial design mockups for the homepage" },
+      { id: "card-1", title: "Research competitors", description: "Analyze top 5 competitors" },
+      { id: "card-2", title: "Design mockups", description: "Create initial design mockups for the homepage" },
     ],
   },
   {
-    id: 2,
+    id: "list-2",
     title: "In Progress",
     cards: [
-      { id: 3, title: "Develop MVP", description: "Start working on the minimum viable product" },
+      { id: "card-3", title: "Develop MVP", description: "Start working on the minimum viable product" },
     ],
   },
   {
-    id: 3,
+    id: "list-3",
     title: "Done",
     cards: [
-      { id: 4, title: "Project kickoff", description: "Initial team meeting and project setup" },
+      { id: "card-4", title: "Project kickoff", description: "Initial team meeting and project setup" },
     ],
   },
 ];
@@ -36,11 +37,42 @@ const BoardView = () => {
 
   const addNewList = () => {
     const newList = {
-      id: Date.now(),
+      id: `list-${Date.now()}`,
       title: "New List",
       cards: [],
     };
     setLists([...lists, newList]);
+  };
+
+  const onDragEnd = (result) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const sourceList = lists.find(list => list.id === source.droppableId);
+    const destList = lists.find(list => list.id === destination.droppableId);
+    const draggedCard = sourceList.cards.find(card => card.id === draggableId);
+
+    const newLists = lists.map(list => {
+      if (list.id === sourceList.id) {
+        list.cards.splice(source.index, 1);
+      }
+      if (list.id === destList.id) {
+        list.cards.splice(destination.index, 0, draggedCard);
+      }
+      return list;
+    });
+
+    setLists(newLists);
   };
 
   return (
@@ -56,14 +88,16 @@ const BoardView = () => {
           </Button>
         </div>
       </div>
-      <div className="flex gap-4 pb-4">
-        {lists.map((list) => (
-          <List key={list.id} list={list} />
-        ))}
-        <Button onClick={addNewList} variant="outline" className="h-auto py-8 px-4">
-          <Plus className="mr-2 h-4 w-4" /> Add New List
-        </Button>
-      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex gap-4 pb-4">
+          {lists.map((list) => (
+            <List key={list.id} list={list} />
+          ))}
+          <Button onClick={addNewList} variant="outline" className="h-auto py-8 px-4">
+            <Plus className="mr-2 h-4 w-4" /> Add New List
+          </Button>
+        </div>
+      </DragDropContext>
     </div>
   );
 };
@@ -74,7 +108,7 @@ const List = ({ list }) => {
   const addNewCard = () => {
     if (newCardTitle.trim() === "") return;
     const newCard = {
-      id: Date.now(),
+      id: `card-${Date.now()}`,
       title: newCardTitle,
       description: "",
     };
@@ -88,12 +122,33 @@ const List = ({ list }) => {
         <CardTitle>{list.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        {list.cards.map((card) => (
-          <Card key={card.id} className="p-2">
-            <h3 className="font-semibold">{card.title}</h3>
-            <p className="text-sm text-muted-foreground">{card.description}</p>
-          </Card>
-        ))}
+        <Droppable droppableId={list.id}>
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="min-h-[50px]"
+            >
+              {list.cards.map((card, index) => (
+                <Draggable key={card.id} draggableId={card.id} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                    >
+                      <Card className="p-2 mb-2">
+                        <h3 className="font-semibold">{card.title}</h3>
+                        <p className="text-sm text-muted-foreground">{card.description}</p>
+                      </Card>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
         <div className="flex flex-col gap-2 mt-2">
           <Input
             placeholder="Enter card title"
